@@ -1,0 +1,2 @@
+# vending-machine
+The aim was to create an entirely functioning and usable Vending Machine, with emphasis placed on giving an as ‘similar’ like experience found in existing Vending Machines. Free-range was given with the choice of coding language for the Vending Machine, with the chosen language being Javascript. This was a personal preference for comfort and confidence being the deciding factors behind the decision.
