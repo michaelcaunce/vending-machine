@@ -1,287 +1,397 @@
-readline = require('readline-sync');
 
+//readline allows the user to input their choice.
+readline = require('readline-sync');
+// Used to allow colours in the vending interface.
 var colors = require('colors');
 
-/*Settings variable stores an object of current credit, and products array.*/
-/*These are global so they can be called by any function in the code*/
-var settings = {
-    /* The users current credit property stored in a global variable*/
-    current_credit: 0.00,
+//Start of created object methods used to store item information.
 
+/*Function which defines the constructor used to construct new instances of the object. In the constructor function's body,
+this. keyword accesses the new instance of Items. Here four member variables are defined.*/
+function Items (id, name, price, stock) {
+    this.id = id;
+    this.name = name;
+    this.price = price;
+    this.stock_level = stock;
+}
 
-
-    /*The products that a user can purchase, stored as objects so name, price, size and quantity can be set*/
-    products: [
-        {name:'Cola Regular', price:1.99, size:"500ml", quantity:10},
-        {name:'Cola Regular', price:2.49, size:"1.25l", quantity:10},
-        {name:'Cola Diet', price:1.99, size:"500ml", quantity:10},
-        {name:'Cola Zero', price:1.99, size:"500ml", quantity:10},
-        {name:'Fanta Regular', price:1.99, size:"500ml", quantity:10},
-        {name:'Sprite Regular', price:1.99, size:"500ml", quantity:10},
-        {name:'Monster Regular', price:1.49, size:"330ml", quantity:10},
-        {name:'Monster Ultra Regular', price:1.49, size:"330ml", quantity:10}
-    ]
+/*Define a new property on the object's prototype property, and then assign the function to it. this. keyword accesses the current instance of the object and then access each of the four properties.*/
+Items.prototype.itemDetails = function() {
+    return this.id + '. ' + this.name + ': ' + '£' + this.price + ' ~ ' + this.stock_level + ' available';
 };
 
+/*New intstances of Items objects, each assigned to the four member variables. */
+
+var Coke_330 = new Items(1, 'Coke 330ml', 1.49, 1);
+var Coke_Zero_330 = new Items(2, 'Coke Zero 330ml', 1.49, 10);
+var Diet_Coke_330 = new Items(3, 'Diet Coke 330ml', 1.49, 10);
+var Sprite_330 = new Items(4, 'Sprite 330ml', 1.49, 10)
+var Coke_500 = new Items(5, 'Coke 500ml', 1.99, 10);
+var Coke_Zero_500 = new Items(6, 'Coke Zero 500ml', 1.99, 10);
+var Diet_Coke_500 = new Items(7, 'Diet Coke 500ml', 1.99, 10);
+var Sprite_500 = new Items(8, 'Sprite 500ml', 1.99, 10)
+
+//End of objects method.
 
 
-/*Start of main menu function*/
-function main_menu() {
-    /*clear console after running the main_menu function, allows for a less cluttered command line*/
-    /*GUI design made to be as simple as possible witout too much clutter*/
+/*Global variables called at various stages in the vending process */
+var stockItems = [Coke_330, Coke_Zero_330,Diet_Coke_330,Sprite_330,Coke_500,Coke_Zero_500,Diet_Coke_500,Sprite_500];
+var credit =  parseFloat(0).toFixed(2);
+var space = '';
+var errorMessage = ' Invalid selection choice! Please enter a number shown above.';
+var pressEnter = ' Press Enter to try again.';
+
+
+// Start of the main menu function
+
+/* Function created for the GUI of the vending machine. This function contains the visuals for the vending machines main menu.
+console.clear() clears the console providing a clean display. Extensive use of colour for visual purposes, credit variable
+displays the users credit at all times. Options 1-5 link to the switch statements in the following function. */
+function mainMenuVisual() {
     console.clear();
-    console.log("                          ".bgWhite.black);
-    console.log("     VENDING MACHINE      ".bgWhite.red)
-    console.log("       ".bgWhite.black+"Peter Bailey".bold.bgWhite.blue+"       ".bgWhite.black)
-    console.log("         23292491         ".bgWhite.black)
-    console.log("         CIS:2152         ".bgWhite.black)
-    console.log("                          ".bgWhite.black);
-    /*Displays the users current credit at all times on the main menu*/
-    console.log("   Current credit: £" + settings.current_credit)
-    console.log("                          ".bgWhite.black);
-    console.log(" Please select an option: ".bgWhite.black);
-    console.log("                          ".bgWhite.black);
-    console.log("   1. Puchase a drink     ".bgWhite.black)
-    console.log("   2. View credit         ".bgWhite.black)
-    console.log("   3. Add credit          ".bgWhite.black)
-    console.log("   4. Refund credit       ".bgWhite.black)
-    console.log("   5. Exit                ".bgWhite.black)
-    console.log("                          ".bgWhite.black)
+    console.log('                          '.white.bold.underline);
+    console.log('                          ');
+    console.log(' ' +'Michael Caunce'.blue.bold+'           ');
+    console.log(' 23212438                 '.blue.bold);
+    console.log(' CIS2152                  '.blue.bold);
+    console.log('                          '.white.bold.underline);
+    console.log('                          ');
+    console.log('     Vending Machine      '.blue.bold)
+    console.log('                          '.white.bold.underline);
+    console.log('                          ');
+    console.log(' Current Credit: '.blue.bold + '£' + credit);
+    console.log('                          '.white.bold.underline);
+    console.log('                          ');
+    console.log('   1:'.white.bold + ' View Items          '.blue.bold);
+    console.log('                          ');
+    console.log('   2:'.white.bold + ' Add Credit          '.blue.bold);
+    console.log('                          ');
+    console.log('   3:'.white.bold + ' Buy Item            '.blue.bold);
+    console.log('                          ');
+    console.log('   4:'.white.bold + ' Return Credit       '.blue.bold);
+    console.log('                          ');
+    console.log('   5:'.white.bold + ' Exit                '.blue.bold);
+    console.log('                          ');
+    console.log('                          '.white.bold.underline);
 
-
-    /*Requests the readline question for input from the user*/
-    var choice = readline.question("user input:");
-
-    /*Switch statement listens for the users input, 1-5 are menu options that return the expected outcome for the user*/
-    /*based on the selection they make, each case refers to a function throughout the program*/
+}
+/* Second main menu function, this contains all the functionality for the options presented to the users.
+/* readline question requests user input, Switch statement links to the menu options presented above. Each selection is shown as case which links to various other functions.
+If users enter an invalid number or character they will be presented with variables 'errorMessage' and 'pressEnter'*/
+function mainMenuOption() {
+    console.log(space);
+    var choice = readline.question(' Selection: '.blue.bold);
+    //If statement deals with users choice.
     switch (parseInt(choice)) {
-        case 1: drinks_selection(); break;
-        case 2: view_credit(); break;
-        case 3: add_credit(); break;
-        case 4: refund_credit(); break;
-        /*if the user selects option 5 "Exit" the program ends*/
-        case 5: break;
-        default:
-            /*Should the user enter an invalid selection i.e. any numerical digit not present on the list, or types anything other, including letters*/
-            /*the user is presented with a fresh screen that informs them that the selection they made is invalid and gives them clear instructions on how*/
-            /*to return to the main menu*/
-            console.clear();
-            console.log("That was not a selection!");
-            console.log("press Enter to return to the main menu")
-            readline.question();
-            main_menu();
-        break;
+      case 1: viewItems(); break;
+      case 2: addCredit(); break;
+      case 3: buyItem(); break;
+      case 4: returnCredit(); break;
+      case 5: console.clear();
+              console.log('                                          '.white.bold.underline);
+              console.log(space);
+              console.log('Thank you for your custom, come back soon!'.bold.blue);
+              console.log('                                          '.white.bold.underline);
+              console.log(space);
+              return;
+      default:
+      console.log(space);
+      console.log(errorMessage.red.bold);
+      console.log(space);
+      console.log(pressEnter.red.bold);
+      readline.question();
+      mainMenu();
+  }
+}
+
+/* Final function for the main menu calls the previous two functions. Once run the user is presented with the visual layout and selection choices. */
+function mainMenu() {
+    console.clear();
+    mainMenuVisual();
+    mainMenuOption();
+}
+
+/*Displays the users credit once the function is caled. */
+function showCredit() {
+    console.log('Credit: '.blue.bold + '£' + credit);
+}
+
+//Start of viewItems functionality
+
+/*Function similar to mainMenuVisual, it works the same but the options differ. */
+function viewItemsVisual() {
+    console.log(space);
+    console.log('                          '.white.bold.underline);
+    console.log('                          ');
+    console.log('   1:'.white.bold + ' Add Credit          '.blue.bold);
+    console.log('                          ');
+    console.log('   2:'.white.bold + ' Buy Item            '.blue.bold);
+    console.log('                          ');
+    console.log('   3:'.white.bold + ' Main Menu           '.blue.bold);
+    console.log('                          '.white.bold.underline);
+
+}
+
+/*Again this works in the same way as mainMenuOption. User asked to make a selection (readline.question) with 3 choices available.
+Each choice is linked to the function relating to the menu option. If users enter an invalid number or character they will be presented with variables 'errorMessage' and 'pressEnter'*/
+function viewItemsOption() {
+    var choice = readline.question(' Selection: '.blue.bold);
+    //If statement deals with users choice.
+    switch (parseInt(choice)) {
+      case 1: addCredit(); break;
+      case 2: buyItem(); break;
+      case 3: mainMenu(); break;
+      default://console.clear();
+              console.log(space);
+              console.log(errorMessage.red.bold);
+              console.log(space);
+              console.log(pressEnter.red.bold);
+              readline.question();
+              viewItems();
     }
 }
-/*end of main main function*/
 
 
-
-
-/*start of drinks selection function*/
-function drinks_selection() {
-    /*Loading the global variable products as products in this function*/
-    var products = settings.products;
-    /*Clears the console ready for the new GUI*/
+/* Displays all items in the console. Firstly the console is cleared which gives the impression of moving to a new screen. Then stockItems array is looped
+through with the items being displayed. Lastly, viewItemsVisual is called which presents the menu, and viewItemsOption is called which allows users to Make
+selection choices. */
+function viewItems() {
     console.clear();
-    console.log("                           ".bgWhite.black);
-    console.log("   Please select a drink   ".bgWhite.black);
-    console.log("                           ".bgWhite.black);
-    console.log(" Current credit: £" + settings.current_credit)
-    console.log("                           ");
-
-    /*for loop iterates over the products in the settings.products global variable and puts them in to the new products variable inside*/
-    /*this function ready to be displayed*/
-    for(var i=0; i<products.length; i++) {
-        var product = products[i];
-        /*logs to the console the product name, size, price & quantity*/
-        /*this is displayed in a list with "i" being displayed at the start of the line*/
-        /*to differentiate the different selections and identify the location in the index*/
-        console.log(i + ". " + product.name + " - " + product.size + ": £" + product.price + " - x" + product.quantity + " left");
+    for (var i = 0; i < stockItems.length; i++) {
+      console.log(stockItems[i].itemDetails());
     }
-
-    /*Choice variable created to store the result of the user input upon entering a selection later down the code*/
-    var choice = readline.question("User input: ");
-
-    /*if the user input is not a number return the value of false*/
-    if (isNaN(choice) == false) {
-        /*parses the user string as an integer and stores it in choiceAsNumber*/
-        var choiceAsNumber = parseInt(choice);
-
-        /*if statement handles if the number entered is greater than or equal to 0 then move on to the stage 2 purchase*/
-        /*without the && operator comparing if the entered unit is less than products.length, the program would crash if a number entered is greater than the iterated list*/
-        if(choiceAsNumber >= 0 && choiceAsNumber < products.length) {
-            /*Upon entering a valid selection, the program then passes on to the stage2_purchase function*/
-            stage2_purchase(choiceAsNumber);
-
-        }
-        else {
-            /*Upon entering an incorrect number the user is presented with an error message telling them that the number they entered*/
-            /*was invalid, and they can try again by pressing enter*/
-            console.log("The number you entered was not on the list!, please choose a number from above - press any key to try again");
-            readline.question();
-            drinks_selection(products);
-        }
-    }
-    else {
-        /*Similar to the previous else statement, if the user enters something that is not a number, the error message gives clear feedback instructions*/
-        console.log("That is not a number, please choose a number from above - press any key to try again");
-        readline.question();
-        drinks_selection(products);
-    }
+    viewItemsVisual();
+    console.log(space);
+    viewItemsOption();
 }
-/*End of drinks selection function*/
 
+// Start of Add Credit functionality.
 
-
-/*Start of stage 2 purchase function*/
-function stage2_purchase(product_index) {
+/* Main function for adding credit. Once called the console clears, with users being asked the amount of credit they'd like to deposit.
+The inclusion of a Regular Expresion restricts users and prevents letters and excessive amount of numbers being used. Users can only enter
+a maximum of two numbers with the option of adding decimal point followed by two numbers. In one deposit the maximum entry is £99.99.
+Inside the if statement addCreditVisual and addCreditOption are called, but only if the user enters a valid amount or character.
+If they do not they will be shown an error message and asked to try again.*/
+function addCredit() {
     console.clear();
-    /*Creates a new variable that stores the product information */
-    var product = settings.products[product_index];
+    var Option = readline.question(' Please enter amount of credit: '.blue.bold + '£');
+    var regex = /^[0-9]{1,2}(\.[0-9]{1,2})?$/;
+    if(Option.match(regex)) {
+      creditDecimalTwo = parseFloat(credit) + parseFloat(Option); // Variable which adds global credit to the variable Option (amount entered by user). Turns inputs into integers so they can be added together otherwise it will concatenate the two numbers.
+      credit = creditDecimalTwo.toFixed(2); //Ensures that any decimal is fixed to two.
+      console.clear();
+      console.log(space);
+      console.log(' Thank you, your balance is now '.blue.bold + '£' + credit +' which can been seen in the vending machine at all times.'.blue.bold);
+      console.log(space);
+      var choice = readline.question(' Would you like to buy a drink? '.blue.bold + '(Y/N) ');
+      switch (choice.toUpperCase()) {
+          case "Y":
+              buyItem(); break;
+          case "N":
+              mainMenu(); break;
+          default:
+              console.log(errorMessage.red.bold);
+              mainMenu();
+          break;
+      }
 
-    /*informs the user of the selected product, and its price*/
-    console.log("Selected product: " + product.name + " " + product.price);
-
-    /*If statement handles the scenario that the price of the item is greater than the users current credit*/
-    /*if this is the case it informs the user that they don't have enough credit to make the purchase*/
-    /*and gives them the ability to return to the main menu to add more credit*/
-    if (product.price > settings.current_credit) {
-        console.clear();
-        console.log("You do not have the required credit to make this purchase :(")
-        console.log("Your current credit is: £" + settings.current_credit)
-        console.log("Please press any key to return to the main menu and add credit")
-        readline.question();
-        main_menu();
-
-    }
-    else {
-        /*else if statement handles the scenario of the item being out of stock, it informs the user of this*/
-        /*and returns the user to the main-menu, as they may not want to be returned to the drinks-selection as the product*/
-        /*they wanted was out of stock*/
-        if (product.quantity == 0) {
-            console.clear();
-            console.log("Sorry, that item is out of stock")
-            console.log("Please press any key to return to the main menu")
-            readline.question();
-            main_menu();
-          }
-        /*else statement confirms the users purchase, adjusts the current_credit taking away the amount of the selected products price*/
-        /*also removes 1 from the quantity of the product that has been purchased*/
-        console.clear()
-        settings.current_credit -= product.price;
-        product.quantity -= 1;
-        console.log("You have purchased: " + product.name + " - £" + product.price)
-        console.log("Thank you!, Your credit is now: £" + settings.current_credit + " - Enjoy your drink!")
-        console.log("Press any key to return to the main menu")
-        readline.question();
-        main_menu();
-    }
+  } else {
+      console.log(space);
+      console.log(' Minimum deposit is £1, Maximum deposit is £99.99, please try again.'.red.bold);
+      console.log(space);
+      var choice2 = readline.question(' Would you like to try again? '.red.bold + '(Y/N) ');
+      switch (choice2.toUpperCase()) {
+          case "Y":
+              addCredit(); break;
+          case "N":
+              mainMenu(); break;
+          default:
+              console.log(errorMessage.red.bold);
+              mainMenu();
+          break;
+      }
+  }
 }
-/*End of stage 2 purchase*/
 
+// Start of Buy Item functions
 
-/**/
-/*start of view credit function*/
-function view_credit() {
+/* This function is part 1 of the buy item process. Once called the first occurance is the console will again clear, with showCredit function being called.
+The user is then asked to make a selection before being presented with all the items from stockItems. The for loop again loops through the array
+and displays full product information, this links back to the instance of objects created at the top. Users are then asked to make their selection (readline.question).
+choice = choice -1 simply ensures the options are 1-6 instead of 0-5. */
+function buyItem() {
     console.clear();
-    /*view_credit is a very simple function that merely creates a new screen that displays the users current credit*/
-    /*and allows them to return to the main menu.*/
-    console.log("Your credit is: " + "£" + settings.current_credit);
-    console.log("press any key to return to the main menu");
-    readline.question();
-    main_menu();
-}
-/*End of view credit function*/
-
-
-
-/*Start of add credit function*/
-function add_credit() {
-    console.clear();
-    console.log("Please enter the amount of credit you would like to add");
-    console.log("Or press enter to exit");
-    /*Choice variable created to pass the user input, £ sign used as string to indicate the user is entering a currency*/
-    var choice = readline.question("£");
-
-    /*choiceAsFloat recieves the input from choice and parses it as a float*/
-    var choiceAsFloat = parseFloat(choice);
-
-    /*If the input is not a number return as false, and if the input is greater than 0 update the global variable*/
-    /*settings.current_credit to reflect the input given by the user*/
-    if (isNaN(choiceAsFloat) == false) {
-        if(choiceAsFloat > 0) {
-            settings.current_credit += choiceAsFloat;
-        }
-        /*Else statement should detect if the user enters something other than a number*/
-        /*and return user feedback saying such, so far it only returns this if the number is negative*/
-        else {
-            console.log("Please enter a number that is higher than 0");
-            console.log("Press any key to return to refund credit:");
-            readline.question();
-            add_credit();
-        }
-        /*Upon succesfull credit being added the user is prompted by the success and given the option to return to the main menu*/
-        console.clear();
-        console.log("thank you! Your credit is now: £" + settings.current_credit + " press enter to return to the main menu")
+    showCredit();
+    console.log(space);
+    console.log('Make a purchase by selecting your item: '.blue.bold);
+    console.log(space);
+    for (var i = 0; i < stockItems.length; i++) {
+      console.log(stockItems[i].itemDetails());
+    }
+    console.log(space);
+    var choice = readline.question('Please enter your number: '.blue.bold);
+    choice = choice - 1;
+    /* If the users input is not a number (isNaN) return the value 'true'*/
+    if (isNaN(choice) == true) {
+        /*User is made aware they have made an error, the question is repeated with buyItem function called once more.*/
+        console.log(space);
+        console.log('Unknown character entered! Press any key to try again.'.red.bold);
         readline.question();
-        main_menu();
+        buyItem();
     } else {
-            /*Similar to the previous else statement, if the user enters something that is not a number, the error message gives clear feedback instructions*/
-            console.log("That is not a number, please choose a number from above - press any key to try again");
+      /*If statement inside the else which identifies whether users input is equal to or greater than 0 and less than the amount of current stock levels.*/
+        if(choice >= 0 && choice < stockItems.length) {
+            /* User moves onto stage two with their choice as the parameter. */
+            buyItemPt2(choice);
+        } else {
+            choice = choice + 1;
+            /*User is made aware they have made an error, the question is repeated with buyItem function called once more.*/
+            console.log(space);
+            console.log('Invalid number choice. Press any key to try again.'.red.bold);
             readline.question();
-            add_credit();
-    }
+            buyItem();
+        }
+      }
 }
-/*End of add credit function*/
 
+//Stage 2 of buying an item.
 
-
-/*Start of refund credit function*/
-function refund_credit() {
-    console.clear()/**/
-    /*If statement says that if the credit is less than or equal to 0, then there*/
-    /*is no credit to refund, thus the user is promted as such, and given the option to return to main menu*/
-    if(settings.current_credit <= 0) {
-        console.log("You do not have any credit to refund!")
-        console.log("Press Enter to ret[urn to the main menu:")
-        readline.question();
-        main_menu();
+/* Function calls the users input (choice) as the parameter. Once again the console is cleared which is followed by a series of control structures. */
+function buyItemPt2(choice) {
+    console.clear();
+    /*New variable that stores the product information. */
+    var item = stockItems[choice];
+    /*Displays the name and price of the selected item.*/
+    console.log('Selected item: '.blue.bold + item.name + ' £' + item.price);
+    /*If statement which declares what will happen if the price of the item is greater than the current credit.
+    The console displays users current balance and asks them to insert the price of the item selected (priceDifferenceDecimalTwo).
+    Users are then asked if they would like to make a deposit with a switch statement. If users enter Y or y addCredit function is called,
+    if N or n is entered users will be taken back to the main menu by calling mainMenu function.
+    */
+    if (credit < item.price) {
+      console.log(space);
+      var price_difference = item.price - credit;
+      priceDifferenceDecimalTwo = price_difference.toFixed(2);
+      console.log('Your current balance is '.red.bold + '£' + credit + ', Please insert '.red.bold + '£' + priceDifferenceDecimalTwo + ', see below.'.red.bold);
+      console.log(space);
+      var choice = readline.question('Would you like to add funds? '.blue.bold + '(Y/N) ');
+      switch (choice.toUpperCase()) {
+          case "Y":
+              addCredit(); break;
+          case "N":
+              mainMenu(); break;
+          default:
+              console.log(errorMessage.red.bold);
+              mainMenu();
+          break;
+      }
     }
-
-    /*Else the user is asked if they are sure they want to refund the credit*/
-    /*This is handled by a switch statement*/
     else {
-        console.log("Are you sure you want to refund your credit? Y/N")
-        console.log("Your current credit is: £" + settings.current_credit)
-        /*Choice variable is used again to recieve user input*/
-        var choice = readline.question("User input: ");
+        /*else if statement handles if an item is out of stock. Users are presented with a message containing the item selection. Again
+        the inclusion of a switch statement proceeds to ask users if they would like to return to buy a drink. buyItem is called if users enter
+        Y or y, with mainMenu called if N or n is entered. */
+        if (item.stock_level == 0) {
+          console.log(space);
+          console.log('Oh dear, we have run out of '.red.bold + item.name);
+          console.log(space);
+          var choice = readline.question('Would you like to return to buy a drink? '.blue.bold + '(Y/N) ');
+          switch (choice.toUpperCase()) {
+              case "Y":
+                  buyItem(); break;
+              case "N":
+                  mainMenu(); break;
+              default:
+                  console.log(errorMessage.red.bold);
+                  mainMenu();
+              break;
+          }
+        } else {
+          /*Finally, if all of the previous statements are false, i.e. the user has enough credit and the item is in the stock,
+          the else statement confirms the users purchase. Global variable 'credit' adjusts to minus the price of the item against the credit balance,
+          and the stock level reduces by 1. The console displays the item purchased and informs users of their new credit balance.
+          Users are then asked if they would like to make another purchase. If Y or y buyItem function is called, if N or n the user
+          is taken back to the main menu by mainMenu being called.*/
+          balanceDecimalTwo = credit - item.price;
+          credit = balanceDecimalTwo.toFixed(2);
+          item.stock_level -= 1;
+          console.log(space);
+          console.log('Succesfull purchase of '.blue.bold + item.name);
+          console.log(space);
+          console.log('Remaining balance '.blue.bold + '£' + credit);
+          console.log(space);
+          var choice = readline.question('Would you like to purchase another drink? '.blue.bold + '(Y/N) ');
+          switch (choice.toUpperCase()) {
+              case "Y":
+                  buyItem(); break;
+              case "N":
+                  mainMenu(); break;
+              default:
+                  console.log(errorMessage.red.bold);
+                  mainMenu();
+              break;
+        }
+    }
+  }
+}
 
-        /*Switch statement uses toUpperCase JS function, to ensure that the user input is understood*/
-        /*whether or not they use an uppercase or lowercase letter*/
+// Start of return credit.
+
+/* Function which handles the users credit being returned. Once again the console is cleared which is followed by a series of control structures. */
+function returnCredit() {
+    console.clear()/**/
+    /*If statement which displays users current credit and informs that they must have available funds in order to recieve a refund. */
+    if(credit <= 0) {
+        console.log('Your balace is '.red.bold + '£' + credit + ', you must have credit to refund.'.red.bold);
+        console.log(space);
+        console.log('Press Enter to return to the Main Menu'.red.bold);
+        readline.question();
+        mainMenu();
+    }
+    /*Else the user is presented with their current credit, and asked if they would like a refund. Once again this is handled with a switch statement*/
+    else {
+        console.log('Your current balance is: '.blue.bold + '£' + credit);
+        console.log(space);
+        console.log('Would you like to return your credit? '.blue.bold + '(Y/N) ');
+        console.log(space);
+        var choice = readline.question('Selection: '.blue.bold);
         switch (choice.toUpperCase()) {
-            /*if the user enters Y, then the current credit is set to 0, the user is then promted*/
-            /*of this and given the option to return to the main menu*/
+            /*if the user enters Y or y users are thanked and informed of the amount returned. The balnce of global credit is restarted and set to 0. Users are presented
+            with this information and asked if they would like to exit the vending machine.*/
             case "Y":
                 console.clear();
-                settings.current_credit = 0;
-                console.log("Thank you, your credit is now: " + "£" + settings.current_credit)
-                console.log("Press Enter to return to the main menu:")
-                readline.question();
-                main_menu();
-                break;
-            /*Should the user enter N, the user is then immediately returned to the main menu and the credit is unaltered*/
-            case "N": main_menu(); break;
+                console.log('Thank you, '.blue.bold + '£' + credit + ' has been returned.'.blue.bold);
+                credit = 0;
+                console.log(space);
+                console.log('Current balance is now '.blue.bold + '£' + credit);
+                console.log(space);
+                console.log('Would you like to exit the Vending Machine? '.blue.bold + '(Y/N) ');
+                console.log(space);
+                var choices = readline.question('Selection: '.blue.bold);
+                /* Additonal switch statment asking users if they would like to exit the vending machine. If Y or y is entered users are thanked for their custom
+                and the vending machine ends */
+                switch (choices.toUpperCase()) {
+                  case "Y":
+                      console.clear();
+                      console.log('                                          '.white.bold.underline);
+                      console.log('                          ');
+                      console.log('Thank you for your custom, come back soon!'.bold.blue);
+                      console.log('                                          '.white.bold.underline);
+                      console.log(space);
+                      return;
+                  case "N": mainMenu(); break;
+                  default:
+                      /*if any other input is given, the user is returned to the main menu*/
+                      mainMenu();
+                  break;
+                }
+            case "N": mainMenu(); break;
             default:
                 /*if any other input is given, the user is returned to the main menu*/
-                console.log("That was not a selection!");
-                main_menu();
+                mainMenu();
             break;
         }
     }
 }
-/*End of refund credit function*/
 
-
-/*Start of program*/
-main_menu()
+/* Start of the Vending Machine */
+mainMenu();
